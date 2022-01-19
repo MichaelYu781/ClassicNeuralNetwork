@@ -25,7 +25,7 @@ class LeNet5(nn.Module):
         y4 = y4.view(-1, 5 * 5 * 16)
 
         y5 = torch.tanh(self.fc1(y4))
-        output = torch.softmax(self.fc2(y5), 0)
+        output = torch.softmax(self.fc2(y5), 1)
         return output
 
 
