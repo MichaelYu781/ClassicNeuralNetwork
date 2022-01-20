@@ -37,8 +37,8 @@ class AlexNet(nn.Module):
         y8 = self.pool5(y7)
 
         y8 = y8.view(-1, 6 * 6 * 256)
-        y8 = torch.dropout(y8, p=0.5, train=True)
 
+        y8 = torch.dropout(y8, p=0.5, train=True)
         y9 = torch.relu(self.fc1(y8))
         y10 = torch.relu(self.fc2(y9))
         output = torch.softmax(self.fc3(y10), 1)
