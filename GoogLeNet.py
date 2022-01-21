@@ -186,7 +186,7 @@ if __name__ == '__main__':
     def test_googlenet():
         data = torch.ones(10, 3, 224, 224)
         net = GoogLeNet()
-        summary(net, device='cpu',depth=1)
+        summary(net, device='cpu', depth=1)
         fc2, fc1, fc0 = net(data)
         for fc in [fc2, fc1, fc0]:
             print(fc.shape)

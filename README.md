@@ -3,3 +3,4 @@
 - AlexNet
 - VGG16
 - NiN
+- GoogLeNet
