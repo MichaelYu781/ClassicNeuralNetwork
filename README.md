@@ -4,3 +4,4 @@
 - VGG16
 - NiN
 - GoogLeNet
+- ResNet
