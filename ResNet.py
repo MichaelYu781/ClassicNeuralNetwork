@@ -8,7 +8,6 @@ import torch.nn as nn
 from torchinfo import summary
 from typing import Type, Union, List, Optional
 
-
 def conv3x3(in_, out_, stride_=(1, 1), initial_zero=False):
     bn = nn.BatchNorm2d(out_)
 
@@ -103,33 +102,6 @@ class BottleNeck(nn.Module):
         hx = self.relu(fx + indentity)
         return hx
 
-
-def make_layers(block: Type[Union[ResidualUnit, BottleNeck]],
-                middle_out,
-                num_blocks: int,
-                afterconv1: bool = False):
-    """
-
-    :param block: "Type" restricts that parameter "block" can only be class,
-                  "Union" further restricts that only two classes in the bracket can be passed
-    :param middle_out: the number is equal to one of middle_out in the block of certain layer s
-    :param num_blocks: the number of blocks in layers
-    :param afterconv1: "True" meaning that the layers is just after "conv1 layers"
-    :return: nn.Sequentia(*layers) the layers
-    """
-
-    layers = list()
-
-    if afterconv1:
-        layers.append(block(middle_out, in_=64))
-    else:
-        layers.append(block(middle_out, stride1=2))
-    for i in range(num_blocks - 1):
-        layers.append(block(middle_out))
-
-    return nn.Sequential(*layers)
-
-
 class ResNet(nn.Module):
     def __init__(self,
                  block: Type[Union[ResidualUnit, BottleNeck]],
@@ -149,10 +121,10 @@ class ResNet(nn.Module):
                                     nn.MaxPool2d(kernel_size=3, stride=2, padding=1))
 
         # layer2 - layer5 ResidualUnit / BottleNeck
-        self.layer2_x = make_layers(block, 64, layers[0], afterconv1=True)
-        self.layer3_x = make_layers(block, 128, layers[1])
-        self.layer4_x = make_layers(block, 256, layers[2])
-        self.layer5_x = make_layers(block, 512, layers[3])
+        self.layer2_x = ResNet.make_layers(block, 64, layers[0], afterconv1=True)
+        self.layer3_x = ResNet.make_layers(block, 128, layers[1])
+        self.layer4_x = ResNet.make_layers(block, 256, layers[2])
+        self.layer5_x = ResNet.make_layers(block, 512, layers[3])
 
         # global average pooling
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
@@ -171,6 +143,32 @@ class ResNet(nn.Module):
         x = torch.flatten(x, 1)
         x = self.fc(x)
         return x
+
+    @staticmethod
+    def make_layers(block: Type[Union[ResidualUnit, BottleNeck]],
+                    middle_out,
+                    num_blocks: int,
+                    afterconv1: bool = False):
+        """
+
+        :param block: "Type" restricts that parameter "block" can only be class,
+                      "Union" further restricts that only two classes in the bracket can be passed
+        :param middle_out: the number is equal to one of middle_out in the block of certain layer s
+        :param num_blocks: the number of blocks in layers
+        :param afterconv1: "True" meaning that the layers is just after "conv1 layers"
+        :return: nn.Sequentia(*layers) the layers
+        """
+
+        layers = list()
+
+        if afterconv1:
+            layers.append(block(middle_out, in_=64))
+        else:
+            layers.append(block(middle_out, stride1=2))
+        for i in range(num_blocks - 1):
+            layers.append(block(middle_out))
+
+        return nn.Sequential(*layers)
 
 
 if __name__ == '__main__':
@@ -202,10 +200,10 @@ if __name__ == '__main__':
     print(shape_)
 
     # test for ResidualUnit not after conv1
-    layer_34_conv4_x = make_layers(ResidualUnit, 256, 6, False)
+    layer_34_conv4_x = ResNet.make_layers(ResidualUnit, 256, 6, False)
     print(len(layer_34_conv4_x))
     # test for ResidualUnit after conv1
-    conv2_x_34 = make_layers(ResidualUnit, 64, 3, True)
+    conv2_x_34 = ResNet.make_layers(ResidualUnit, 64, 3, True)
     datashape = (10, 64, 56, 56)
     summary(conv2_x_34, datashape, device='cpu', depth=1)
 
